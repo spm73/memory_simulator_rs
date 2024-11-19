@@ -34,11 +34,44 @@ impl<'a> Memory<'a> {
     }
 
     pub fn update(&mut self) {
-        self.runtime += 1;
         for partition in self.partitions.iter_mut() {
             partition.update();
         }
+        self.runtime += 1;
     }
+
+    fn get_free_partitions_index(&self) -> Vec<usize> {
+        let mut free_partitions_index: Vec<usize> = Vec::new();
+        for (index, partition) in self.partitions.iter().enumerate() {
+            if partition.is_free() {
+                free_partitions_index.push(index);
+            }
+        }
+
+        free_partitions_index
+    }
+
+    fn merge_partitions(&mut self) {
+        let mut free_partitions_index: Vec<usize> = self.get_free_partitions_index();
+
+        let mut skip_next_iteration = false;
+        for i in 0..free_partitions_index.len() - 1 {
+            if contiguous_indexes(free_partitions_index[i], free_partitions_index[i + 1]) {
+                let (right, left)  = self.partitions.split_at_mut(free_partitions_index[i]);
+                let partition1 = right.last_mut().unwrap();
+                let partition2 = left.first().unwrap();
+                partition1.merge(partition2);
+                self.partitions.remove(free_partitions_index[i + 1]);
+                skip_next_iteration = true;
+            } else if skip_next_iteration {
+                skip_next_iteration = false;
+            }
+        }
+    }
+}
+
+fn contiguous_indexes(index1: usize, index2: usize) -> bool {
+    index1 + 1 == index2 || index1 - 1 == index2
 }
 
 #[cfg(test)]

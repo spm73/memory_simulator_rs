@@ -29,8 +29,15 @@ impl<'a> Partition<'a> {
 
     pub fn is_free(&self) -> bool {
         match &self.process {
-            Some(p) => false,
+            Some(_) => false,
             None => true
+        }
+    }
+
+    pub fn merge(&mut self, other: &Self) {
+        // add error handling
+        if self.process.is_none() {
+            self.size += other.size;
         }
     }
 }
