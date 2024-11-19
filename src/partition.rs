@@ -3,25 +3,16 @@ use crate::process::Process;
 pub struct Partition<'a> {
     initial_adress: u32,
     size: u32,
-    free: bool,
     process: Option<&'a mut Process>
 }
 
 impl<'a> Partition<'a> {
     fn new(initial_adress: u32, size: u32, process: Option<&'a mut Process>) -> Self {
-        let mut result = Self {
+        Self {
             initial_adress: initial_adress,
             size: size,
-            free: false,
             process: process
-        };
-        
-        match result.process {
-            Some(_) => result.free = false,
-            None => result.free = true
-        };
-
-        result
+        }
     }
 
     pub fn update(&mut self) {
@@ -30,10 +21,35 @@ impl<'a> Partition<'a> {
                 p.update();
                 if p.has_ended() {
                     self.process = None;
-                    self.free = true;
                 }
             },
             None => ()
         }
+    }
+
+    pub fn is_free(&self) -> bool {
+        match &self.process {
+            Some(p) => false,
+            None => true
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_free1() {
+        let partition = Partition::new(0, 1, None);
+        assert_eq!(partition.is_free(), true);
+    }
+
+    #[test]
+    fn is_free2() {
+        let mut process = Process::from("1 0 100 50");
+        let partition = Partition::new(0, 1, Some(&mut process));
+
+        assert_eq!(partition.is_free(), false);
     }
 }

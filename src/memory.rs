@@ -43,8 +43,8 @@ impl<'a> Memory<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*; 
-    
+    use super::*;
+
     #[test]
     fn test_new() {
         const FILE_NAME: &str = "input_prueba.txt";
