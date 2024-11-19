@@ -23,6 +23,10 @@ impl Process {
     pub fn update(&mut self) {
         self.runtime -= 1;
     }
+
+    pub fn has_ended(&self) -> bool {
+        self.runtime <= 0
+    }
 }
 
 #[cfg(test)]
