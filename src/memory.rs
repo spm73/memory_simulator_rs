@@ -54,19 +54,31 @@ impl<'a> Memory<'a> {
     fn merge_partitions(&mut self) {
         let mut free_partitions_index: Vec<usize> = self.get_free_partitions_index();
 
-        let mut skip_next_iteration = false;
-        for i in 0..free_partitions_index.len() - 1 {
-            if contiguous_indexes(free_partitions_index[i], free_partitions_index[i + 1]) {
-                let (right, left)  = self.partitions.split_at_mut(free_partitions_index[i]);
-                let partition1 = right.last_mut().unwrap();
-                let partition2 = left.first().unwrap();
-                partition1.merge(partition2);
-                self.partitions.remove(free_partitions_index[i + 1]);
-                skip_next_iteration = true;
-            } else if skip_next_iteration {
-                skip_next_iteration = false;
+        let mut is_merged = false;
+
+        while (!is_merged) {
+            let mut skip_next_iteration = false;
+            for i in 0..free_partitions_index.len() - 1 {
+                if !skip_next_iteration && contiguous_indexes(free_partitions_index[i], free_partitions_index[i + 1]) {
+                    let (left, right)  = self.partitions.split_at_mut(free_partitions_index[i + 1]);
+                    let partition1 = left.last_mut().unwrap();
+                    let partition2 = right.first().unwrap();
+                    partition1.merge(partition2);
+                    self.partitions.remove(free_partitions_index[i + 1]);
+                    skip_next_iteration = true;
+                } else if skip_next_iteration {
+                    skip_next_iteration = false;
+                }
             }
+
+            let new_free_partitions_index = self.get_free_partitions_index();
+            if free_partitions_index == new_free_partitions_index {
+                is_merged = true;
+            }
+
+            free_partitions_index = new_free_partitions_index;
         }
+
     }
 }
 
