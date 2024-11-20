@@ -7,9 +7,8 @@ const INITIAL_MEMORY: u32 = 2000;
 
 pub struct Memory<'a> {
     size: u32,
-    initial_processes: Vec<Process>,
+    processes: Vec<Process>,
     partitions: Vec<Partition<'a>>, 
-    waiting_queue: Vec<Process>,
     runtime: u32
 }
 
@@ -18,14 +17,13 @@ impl<'a> Memory<'a> {
         let file_content = read_to_string(file_path)?;
         let mut result = Self {
             size: INITIAL_MEMORY,
-            initial_processes: Vec::new(),
+            processes: Vec::new(),
             partitions: Vec::new(),
-            waiting_queue: Vec::new(),
             runtime: 0
         };
 
         for line in file_content.lines() {
-            result.initial_processes.push(Process::from(line));
+            result.processes.push(Process::from(line));
         }
 
         result.partitions.push(Partition::new_empty(0, result.size));
@@ -100,8 +98,7 @@ mod tests {
                 assert_eq!(mem.size, INITIAL_MEMORY);
                 assert_eq!(mem.runtime, 0);
                 assert_eq!(mem.partitions.len(), 0);
-                assert_eq!(mem.waiting_queue.len(), 0);
-                assert_eq!(mem.initial_processes.len(), 2);
+                assert_eq!(mem.processes.len(), 2);
             },
             Err(e) => panic!("An error ocurred, {}", e)
         }
