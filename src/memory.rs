@@ -5,14 +5,14 @@ use std::error::Error;
 
 const INITIAL_MEMORY: u32 = 2000;
 
-pub struct Memory<'a> {
+pub struct Memory {
     size: u32,
     processes: Vec<Process>,
-    partitions: Vec<Partition<'a>>, 
+    partitions: Vec<Partition>, 
     runtime: u32
 }
 
-impl<'a> Memory<'a> {
+impl Memory {
     pub fn new(file_path: &str) -> Result<Self, Box<dyn Error>> {
         let file_content = read_to_string(file_path)?;
         let mut result = Self {
@@ -32,11 +32,37 @@ impl<'a> Memory<'a> {
     }
 
     pub fn update(&mut self) {
+        self.best_fit();
         for partition in self.partitions.iter_mut() {
             partition.update();
         }
         self.merge_partitions();
         self.runtime += 1;
+    }
+
+    fn best_fit(&mut self) {
+        let mut processes_to_remove: Vec<usize> = Vec::new();
+        for (index, process) in self.processes.iter_mut().enumerate() {
+            if self.runtime >= process.get_arrival_time() {
+                let mut new_memory_arrangement: Vec<Partition> = Vec::new();
+                for partition in &self.partitions {
+                    let memory_required = process.get_memory_required();
+                    if partition.is_free() && partition.get_size() >= memory_required {
+                        let (partition1, partition2) = Partition::divide(partition.clone(), process.clone());
+                        new_memory_arrangement.push(partition1);
+                        new_memory_arrangement.push(partition2);
+                        processes_to_remove.push(index);
+                    } else {
+                        new_memory_arrangement.push(partition.clone());
+                    } 
+                }
+                self.partitions = new_memory_arrangement;
+            }
+        }
+        
+        for index in processes_to_remove {
+            self.processes.remove(index);
+        }
     }
 
     fn get_free_partitions_index(&self) -> Vec<usize> {
@@ -55,7 +81,7 @@ impl<'a> Memory<'a> {
 
         let mut is_merged = false;
 
-        while (!is_merged) {
+        while !is_merged {
             let mut skip_next_iteration = false;
             for i in 0..free_partitions_index.len() - 1 {
                 if !skip_next_iteration && contiguous_indexes(free_partitions_index[i], free_partitions_index[i + 1]) {

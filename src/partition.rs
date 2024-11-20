@@ -1,18 +1,24 @@
 use crate::process::Process;
 
-pub struct Partition<'a> {
+#[derive(Clone, Copy)]
+pub struct Partition {
     initial_adress: u32,
     size: u32,
-    process: Option<&'a mut Process>
+    process: Option<Process>
 }
 
-impl<'a> Partition<'a> {
-    pub fn new(initial_adress: u32, size: u32, process: Option<&'a mut Process>) -> Self {
-        Self {
-            initial_adress: initial_adress,
-            size: size,
-            process: process
-        }
+impl Partition {
+    pub fn divide(partition: Self, process: Process) -> (Self, Self) {
+        let memory_required = process.get_memory_required();
+        (Self {
+            initial_adress: partition.initial_adress,
+            size: memory_required,
+            process: Some(process)
+        }, Self {
+            initial_adress: partition.initial_adress + memory_required + 1,
+            size: partition.size - memory_required,
+            process: None
+        })
     }
 
     pub fn new_empty(initial_adress: u32, size: u32) -> Self {
@@ -48,23 +54,13 @@ impl<'a> Partition<'a> {
             self.size += other.size;
         }
     }
+
+    pub fn get_size(&self) -> u32 {
+        self.size
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn is_free1() {
-        let partition = Partition::new(0, 1, None);
-        assert_eq!(partition.is_free(), true);
-    }
-
-    #[test]
-    fn is_free2() {
-        let mut process = Process::from("1 0 100 50");
-        let partition = Partition::new(0, 1, Some(&mut process));
-
-        assert_eq!(partition.is_free(), false);
-    }
 }

@@ -1,5 +1,6 @@
 use std::convert::From;
 
+#[derive(Clone, Copy)]
 pub struct Process {
     id: u32,
     arrival_time: u32,
@@ -26,6 +27,14 @@ impl Process {
 
     pub fn has_ended(&self) -> bool {
         self.runtime <= 0
+    }
+
+    pub fn get_arrival_time(&self) -> u32 {
+        self.arrival_time
+    }
+
+    pub fn get_memory_required(&self) -> u32 {
+        self.memory_required
     }
 }
 
