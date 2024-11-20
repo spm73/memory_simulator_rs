@@ -7,7 +7,6 @@ const INITIAL_MEMORY: u32 = 2000;
 
 pub struct Memory<'a> {
     size: u32,
-    free_capacity: u32,
     initial_processes: Vec<Process>,
     partitions: Vec<Partition<'a>>, 
     waiting_queue: Vec<Process>,
@@ -19,7 +18,6 @@ impl<'a> Memory<'a> {
         let file_content = read_to_string(file_path)?;
         let mut result = Self {
             size: INITIAL_MEMORY,
-            free_capacity: 0,
             initial_processes: Vec::new(),
             partitions: Vec::new(),
             waiting_queue: Vec::new(),
@@ -30,6 +28,8 @@ impl<'a> Memory<'a> {
             result.initial_processes.push(Process::from(line));
         }
 
+        result.partitions.push(Partition::new_empty(0, result.size));
+
         Ok(result)
     }
 
@@ -37,6 +37,7 @@ impl<'a> Memory<'a> {
         for partition in self.partitions.iter_mut() {
             partition.update();
         }
+        self.merge_partitions();
         self.runtime += 1;
     }
 
@@ -97,7 +98,6 @@ mod tests {
         match result {
             Ok(mem) => {
                 assert_eq!(mem.size, INITIAL_MEMORY);
-                assert_eq!(mem.free_capacity, 0);
                 assert_eq!(mem.runtime, 0);
                 assert_eq!(mem.partitions.len(), 0);
                 assert_eq!(mem.waiting_queue.len(), 0);

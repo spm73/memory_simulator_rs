@@ -7,11 +7,19 @@ pub struct Partition<'a> {
 }
 
 impl<'a> Partition<'a> {
-    fn new(initial_adress: u32, size: u32, process: Option<&'a mut Process>) -> Self {
+    pub fn new(initial_adress: u32, size: u32, process: Option<&'a mut Process>) -> Self {
         Self {
             initial_adress: initial_adress,
             size: size,
             process: process
+        }
+    }
+
+    pub fn new_empty(initial_adress: u32, size: u32) -> Self {
+        Self {
+            initial_adress: initial_adress,
+            size: size,
+            process: None
         }
     }
 
