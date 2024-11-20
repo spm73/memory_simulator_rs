@@ -12,6 +12,11 @@ pub struct Memory {
     runtime: u32
 }
 
+pub enum Algorithm {
+    BestFit,
+    WorstFit
+}
+
 impl Memory {
     pub fn new(file_path: &str) -> Result<Self, Box<dyn Error>> {
         let file_content = read_to_string(file_path)?;
@@ -31,9 +36,13 @@ impl Memory {
         Ok(result)
     }
 
-    pub fn update(&mut self) {
-        self.best_fit();
-        for partition in self.partitions.iter_mut() {
+    pub fn update(&mut self, algorithm: Algorithm) {
+        match algorithm {
+            Algorithm::BestFit => self.best_fit(),
+            Algorithm::WorstFit => todo!()
+        }
+
+        for partition in &mut self.partitions {
             partition.update();
         }
         self.merge_partitions();
@@ -77,33 +86,44 @@ impl Memory {
     }
 
     fn merge_partitions(&mut self) {
-        let mut free_partitions_index: Vec<usize> = self.get_free_partitions_index();
+        // let mut free_partitions_index: Vec<usize> = self.get_free_partitions_index();
 
-        let mut is_merged = false;
+        // let mut is_merged = false;
 
-        while !is_merged {
-            let mut skip_next_iteration = false;
-            for i in 0..free_partitions_index.len() - 1 {
-                if !skip_next_iteration && contiguous_indexes(free_partitions_index[i], free_partitions_index[i + 1]) {
-                    let (left, right)  = self.partitions.split_at_mut(free_partitions_index[i + 1]);
-                    let partition1 = left.last_mut().unwrap();
-                    let partition2 = right.first().unwrap();
-                    partition1.merge(partition2);
-                    self.partitions.remove(free_partitions_index[i + 1]);
-                    skip_next_iteration = true;
-                } else if skip_next_iteration {
-                    skip_next_iteration = false;
+        // while !is_merged {
+        //     let mut skip_next_iteration = false;
+        //     for i in 0..free_partitions_index.len() - 1 {
+        //         if !skip_next_iteration && contiguous_indexes(free_partitions_index[i], free_partitions_index[i + 1]) {
+        //             let (left, right)  = self.partitions.split_at_mut(free_partitions_index[i + 1]);
+        //             let partition1 = left.last_mut().unwrap();
+        //             let partition2 = right.first().unwrap();
+        //             partition1.merge(partition2);
+        //             self.partitions.remove(free_partitions_index[i + 1]);
+        //             skip_next_iteration = true;
+        //         } else if skip_next_iteration {
+        //             skip_next_iteration = false;
+        //         }
+        //     }
+
+        //     let new_free_partitions_index = self.get_free_partitions_index();
+        //     if free_partitions_index == new_free_partitions_index {
+        //         is_merged = true;
+        //     }
+
+        //     free_partitions_index = new_free_partitions_index;
+        //}
+
+        let mut i = 0;
+        while i < self.partitions.len() {
+            if self.partitions[i].is_free() {
+                let j = i + 1;
+                while self.partitions[j].is_free() {
+                    let p = self.partitions.remove(j);
+                    self.partitions[i].merge(p);
                 }
             }
-
-            let new_free_partitions_index = self.get_free_partitions_index();
-            if free_partitions_index == new_free_partitions_index {
-                is_merged = true;
-            }
-
-            free_partitions_index = new_free_partitions_index;
+            i += 1;
         }
-
     }
 }
 

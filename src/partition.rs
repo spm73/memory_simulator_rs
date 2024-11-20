@@ -48,7 +48,7 @@ impl Partition {
         }
     }
 
-    pub fn merge(&mut self, other: &Self) {
+    pub fn merge(&mut self, other: Self) {
         // add error handling
         if self.process.is_none() {
             self.size += other.size;
