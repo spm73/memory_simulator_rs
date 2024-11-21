@@ -8,15 +8,15 @@ pub struct Partition {
 }
 
 impl Partition {
-    pub fn divide(partition: Self, process: Process) -> (Self, Self) {
+    pub fn divide(self, process: Process) -> (Self, Self) {
         let memory_required = process.get_memory_required();
         (Self {
-            initial_adress: partition.initial_adress,
+            initial_adress: self.initial_adress,
             size: memory_required,
             process: Some(process)
         }, Self {
-            initial_adress: partition.initial_adress + memory_required + 1,
-            size: partition.size - memory_required,
+            initial_adress: self.initial_adress + memory_required + 1,
+            size: self.size - memory_required,
             process: None
         })
     }

@@ -49,40 +49,36 @@ impl Memory {
         self.runtime += 1;
     }
 
-    fn best_fit(&mut self) {
-        let mut processes_to_remove: Vec<usize> = Vec::new();
-        for (index, process) in self.processes.iter_mut().enumerate() {
-            if self.runtime >= process.get_arrival_time() {
-                let mut new_memory_arrangement: Vec<Partition> = Vec::new();
-                for partition in &self.partitions {
-                    let memory_required = process.get_memory_required();
-                    if partition.is_free() && partition.get_size() >= memory_required {
-                        let (partition1, partition2) = Partition::divide(partition.clone(), process.clone());
-                        new_memory_arrangement.push(partition1);
-                        new_memory_arrangement.push(partition2);
-                        processes_to_remove.push(index);
-                    } else {
-                        new_memory_arrangement.push(partition.clone());
-                    } 
-                }
-                self.partitions = new_memory_arrangement;
+    fn get_best_fit_position(&self, process: &Process) -> Option<usize> {
+        let mut index_best_fit_partition: Option<usize> = None;
+        let mut size_best_fit_partition = u32::MAX;
+        for (index, partition) in self.partitions.iter().enumerate() {
+            if partition.is_free() && partition.get_size() < size_best_fit_partition && partition.get_size() >= process.get_memory_required() {
+                index_best_fit_partition = Some(index);
+                size_best_fit_partition = partition.get_size();
             }
         }
-        
-        for index in processes_to_remove {
-            self.processes.remove(index);
+        index_best_fit_partition
+    }
+
+    fn best_fit(&mut self) {
+        for process in &self.processes {
+            if self.runtime >= process.get_arrival_time() {
+                match self.get_best_fit_position(process) {
+                    None => (),
+                    Some(index) => {
+                        let partition = self.partitions.remove(index);
+                        let (partition1, partition2) = partition.divide(process.clone());
+                        self.partitions.insert(index, partition1);
+                        self.partitions.insert(index + 1, partition2);
+                    }
+                }
+            }
         }
     }
 
-    fn get_free_partitions_index(&self) -> Vec<usize> {
-        let mut free_partitions_index: Vec<usize> = Vec::new();
-        for (index, partition) in self.partitions.iter().enumerate() {
-            if partition.is_free() {
-                free_partitions_index.push(index);
-            }
-        }
-
-        free_partitions_index
+    fn worst_fit(&mut self) {
+        todo!()
     }
 
     fn merge_partitions(&mut self) {
