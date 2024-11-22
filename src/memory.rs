@@ -37,10 +37,7 @@ impl Memory {
     }
 
     pub fn update(&mut self, algorithm: Algorithm) {
-        match algorithm {
-            Algorithm::BestFit => self.best_fit(),
-            Algorithm::WorstFit => todo!()
-        }
+        self.partition_assignment(algorithm);
 
         for partition in &mut self.partitions {
             partition.update();
@@ -49,22 +46,36 @@ impl Memory {
         self.runtime += 1;
     }
 
-    fn get_best_fit_position(&self, process: &Process) -> Option<usize> {
-        let mut index_best_fit_partition: Option<usize> = None;
-        let mut size_best_fit_partition = u32::MAX;
-        for (index, partition) in self.partitions.iter().enumerate() {
-            if partition.is_free() && partition.get_size() < size_best_fit_partition && partition.get_size() >= process.get_memory_required() {
-                index_best_fit_partition = Some(index);
-                size_best_fit_partition = partition.get_size();
+    fn get_partition_position(&self, process: &Process, algorithm: &Algorithm) -> Option<usize> {
+        let mut index_partition: Option<usize> = None;
+        let mut size_partition;
+        let condition: Box<dyn Fn(u32, u32) -> bool>;
+        
+        match algorithm {
+            Algorithm::BestFit => {
+                size_partition = u32::MAX;
+                condition = Box::new(|current_size_partition: u32, best_size_partition: u32| -> bool { current_size_partition < best_size_partition }); 
+            },
+            Algorithm::WorstFit => {
+                size_partition = u32::MIN;
+                condition = Box::new(|current_size_partition: u32, worst_size_partition: u32| -> bool { current_size_partition > worst_size_partition });
             }
         }
-        index_best_fit_partition
+        
+        for (index, partition) in self.partitions.iter().enumerate() {
+            if partition.is_free() && condition(partition.get_size(), size_partition) && partition.get_size() >= process.get_memory_required() {
+                index_partition = Some(index);
+                size_partition = partition.get_size();
+            }
+        }
+        
+        index_partition
     }
 
-    fn best_fit(&mut self) {
+    fn partition_assignment(&mut self, algorithm: Algorithm) {
         for process in &self.processes {
             if self.runtime >= process.get_arrival_time() {
-                match self.get_best_fit_position(process) {
+                match self.get_partition_position(process, &algorithm) {
                     None => (),
                     Some(index) => {
                         let partition = self.partitions.remove(index);
@@ -75,10 +86,6 @@ impl Memory {
                 }
             }
         }
-    }
-
-    fn worst_fit(&mut self) {
-        todo!()
     }
 
     fn merge_partitions(&mut self) {
