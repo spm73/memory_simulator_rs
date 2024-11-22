@@ -4,6 +4,7 @@ use std::fs::read_to_string;
 use std::error::Error;
 
 const INITIAL_MEMORY: u32 = 2000;
+const OUTPUT_FILE_NAME: &str = "partitions.txt";
 
 pub struct Memory {
     size: u32,
@@ -35,35 +36,42 @@ impl Memory {
 
         Ok(result)
     }
-
+    
     pub fn update(&mut self, algorithm: Algorithm) {
         self.partition_assignment(algorithm);
-
+        
         for partition in &mut self.partitions {
             partition.update();
         }
         self.merge_partitions();
         self.runtime += 1;
+        self.write_file();
+    }
+    
+    fn write_file(&self) {
+        for partition in &self.partitions {
+
+        }
     }
 
     fn get_partition_position(&self, process: &Process, algorithm: &Algorithm) -> Option<usize> {
         let mut index_partition: Option<usize> = None;
         let mut size_partition;
-        let condition: Box<dyn Fn(u32, u32) -> bool>;
+        let algorithm_condition: Box<dyn Fn(u32, u32) -> bool>;
         
         match algorithm {
             Algorithm::BestFit => {
                 size_partition = u32::MAX;
-                condition = Box::new(|current_size_partition: u32, best_size_partition: u32| -> bool { current_size_partition < best_size_partition }); 
+                algorithm_condition = Box::new(|current_size_partition: u32, best_size_partition: u32| -> bool { current_size_partition < best_size_partition }); 
             },
             Algorithm::WorstFit => {
                 size_partition = u32::MIN;
-                condition = Box::new(|current_size_partition: u32, worst_size_partition: u32| -> bool { current_size_partition > worst_size_partition });
+                algorithm_condition = Box::new(|current_size_partition: u32, worst_size_partition: u32| -> bool { current_size_partition > worst_size_partition });
             }
         }
         
         for (index, partition) in self.partitions.iter().enumerate() {
-            if partition.is_free() && condition(partition.get_size(), size_partition) && partition.get_size() >= process.get_memory_required() {
+            if partition.is_free() && algorithm_condition(partition.get_size(), size_partition) && partition.get_size() >= process.get_memory_required() {
                 index_partition = Some(index);
                 size_partition = partition.get_size();
             }
@@ -103,10 +111,6 @@ impl Memory {
     }
 }
 
-fn contiguous_indexes(index1: usize, index2: usize) -> bool {
-    index1 + 1 == index2 || index1 - 1 == index2
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -132,7 +136,7 @@ mod tests {
         let result = Memory::new(FILE_NAME);
         match result {
             Ok(_) => panic!("File does not exist"),
-            Err(_) => ()
+            Err(e) => println!("Correct: {e}")
         }
     }
 }

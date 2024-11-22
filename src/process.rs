@@ -5,7 +5,14 @@ pub struct Process {
     id: u32,
     arrival_time: u32,
     memory_required: u32,
-    runtime: u32
+    runtime: u32,
+    is_assigned: bool
+}
+
+impl std::fmt::Display for Process {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "P{}", self.id)
+    }
 }
 
 impl From<&str> for Process {
@@ -15,7 +22,8 @@ impl From<&str> for Process {
             id: buff.next().unwrap().parse::<u32>().unwrap(),
             arrival_time: buff.next().unwrap().parse::<u32>().unwrap(),
             memory_required: buff.next().unwrap().parse::<u32>().unwrap(),
-            runtime: buff.next().unwrap().parse::<u32>().unwrap()
+            runtime: buff.next().unwrap().parse::<u32>().unwrap(),
+            is_assigned: false
         }
     }
 }
@@ -35,6 +43,14 @@ impl Process {
 
     pub fn get_memory_required(&self) -> u32 {
         self.memory_required
+    }
+
+    pub fn assign(&mut self) {
+        self.is_assigned = true;
+    }
+
+    pub fn is_assigned(&self) -> bool {
+        self.is_assigned
     }
 }
 

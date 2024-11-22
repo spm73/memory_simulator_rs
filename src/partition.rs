@@ -1,10 +1,21 @@
+use core::fmt;
+
 use crate::process::Process;
 
-#[derive(Clone, Copy)]
 pub struct Partition {
     initial_adress: u32,
     size: u32,
     process: Option<Process>
+}
+
+impl fmt::Display for Partition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.is_free() {
+            write!(f, "[{} Hole {}]", self.initial_adress, self.size)
+        } else {
+            write!(f, "[{} {} {}]", self.initial_adress, self.process.unwrap(), self.size)
+        }
+    }
 }
 
 impl Partition {
