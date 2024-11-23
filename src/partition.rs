@@ -50,14 +50,11 @@ impl<'a> Partition<'a> {
     }
 
     pub fn update(&mut self) {
-        match &mut self.process {
-            Some(p) => {
-                p.update();
-                if p.has_ended() {
-                    self.process = None;
-                }
-            },
-            None => ()
+        if let Some(process) = &mut self.process {
+            process.update();
+            if process.has_ended() {
+                self.process = None;
+            }
         }
     }
 
@@ -67,7 +64,7 @@ impl<'a> Partition<'a> {
 
     pub fn merge(&mut self, other: Self) {
         // add error handling
-        if self.process.is_none() {
+        if self.is_free() {
             self.size += other.size;
         }
     }
