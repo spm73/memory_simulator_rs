@@ -30,11 +30,13 @@ impl From<&str> for Process {
 
 impl Process {
     pub fn update(&mut self) {
-        self.runtime -= 1;
+        if self.runtime > 0 {
+            self.runtime -= 1;
+        }
     }
 
     pub fn has_ended(&self) -> bool {
-        self.runtime <= 0
+        self.runtime == 0
     }
 
     pub fn get_arrival_time(&self) -> u32 {
