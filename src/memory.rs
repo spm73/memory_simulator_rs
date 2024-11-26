@@ -1,6 +1,6 @@
 use crate::process::Process;
 use crate::partition::Partition;
-use std::fs::read_to_string;
+use std::fs::{ read_to_string, File };
 use std::error::Error;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -47,13 +47,19 @@ impl Memory {
         }
         self.merge_partitions();
         self.runtime += 1;
-        self.write_file();
+        if let Err(e) = self.write_file() {
+            println!("Something went wrong while writing the output to file");
+            println!("{}", e);
+        }
     }
     
-    fn write_file(&self) {
+    fn write_file(&self) -> std::io::Result<()> {
+        use std::io::Write;
+        let mut file = File::options().append(true).open(OUTPUT_FILE_NAME)?;
         for partition in &self.partitions {
-            todo!();
+            write!(&mut file, "{}", partition)?;
         }
+        Ok(())
     }
 
     fn get_partition_position(&self, process: &Process, algorithm: &Algorithm) -> Option<usize> {
