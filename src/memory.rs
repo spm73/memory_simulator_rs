@@ -2,14 +2,16 @@ use crate::process::Process;
 use crate::partition::Partition;
 use std::fs::read_to_string;
 use std::error::Error;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 const INITIAL_MEMORY: u32 = 2000;
 const OUTPUT_FILE_NAME: &str = "partitions.txt";
 
-pub struct Memory<'a> {
+pub struct Memory {
     size: u32,
-    processes: Vec<Process>,
-    partitions: Vec<Partition<'a>>, 
+    processes: Vec<Rc<RefCell<Process>>>,
+    partitions: Vec<Partition>, 
     runtime: u32
 }
 
@@ -18,7 +20,7 @@ pub enum Algorithm {
     WorstFit
 }
 
-impl<'a> Memory<'a> {
+impl Memory {
     pub fn new(file_path: &str) -> Result<Self, Box<dyn Error>> {
         let file_content = read_to_string(file_path)?;
         let mut result = Self {
@@ -81,18 +83,16 @@ impl<'a> Memory<'a> {
     }
 
     fn partition_assignment(&mut self, algorithm: Algorithm) {
-        let processes = self.processes.iter().collect::<Vec<_>>();
-        for process in processes {
+        let processes = self.processes.clone();
+        for (i, process) in processes.iter().enumerate() {
             if !process.is_assigned() && self.runtime >= process.get_arrival_time() {
-                match self.get_partition_position(process, &algorithm) {
-                    None => (),
-                    Some(index) => {
-                        let partition = self.partitions.remove(index);
-                        let (partition1, partition2) = partition.divide(process);
-                        self.partitions.insert(index, partition1);
-                        if partition2.is_some() {
-                            self.partitions.insert(index + 1, partition2.unwrap());
-                        }
+                let possible_position = self.get_partition_position(process, &algorithm);
+                if let Some(index) = possible_position {
+                    let partition = self.partitions.remove(index);
+                    let (partition1, partition2) = partition.divide(&mut self.processes[i]);
+                    self.partitions.insert(index, partition1);
+                    if let Some(p) = partition2 {
+                        self.partitions.insert(index + 1, p);
                     }
                 }
             }

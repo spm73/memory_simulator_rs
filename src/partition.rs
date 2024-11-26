@@ -1,39 +1,41 @@
 use core::fmt;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 use crate::process::Process;
 
-pub struct Partition<'a> {
+pub struct Partition {
     initial_adress: u32,
     size: u32,
-    process: Option<&'a mut Process>
+    process: Option<Rc<RefCell<Process>>>
 }
 
-impl<'a> fmt::Display for Partition<'a> {
+impl fmt::Display for Partition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.is_free() {
             write!(f, "[{} Hole {}]", self.initial_adress, self.size)
         } else {
-            write!(f, "[{} {} {}]", self.initial_adress, self.process.as_ref().unwrap().clone(), self.size)
+            write!(f, "[{} {} {}]", self.initial_adress, self.process.as_ref().unwrap().borrow().clone(), self.size)
         }
     }
 }
 
-impl<'a> Partition<'a> {
-    pub fn divide(self, process: &'a mut Process) -> (Self, Option<Self>) {
-        let memory_required = process.get_memory_required();
-        process.assign();
+impl Partition {
+    pub fn divide(self, process: &Rc<RefCell<Process>>) -> (Self, Option<Self>) {
+        let memory_required = process.borrow().get_memory_required();
+        process.borrow_mut().assign();
         if memory_required == self.size {
             return (Self {
                 initial_adress: self.initial_adress,
                 size: memory_required,
-                process: Some(process)
+                process: Some(Rc::clone(process))
             }, None);
         }
 
         (Self {
             initial_adress: self.initial_adress,
             size: memory_required,
-            process: Some(process)
+            process: Some(Rc::clone(process))
         }, Some(Self {
             initial_adress: self.initial_adress + memory_required + 1,
             size: self.size - memory_required,
@@ -50,9 +52,9 @@ impl<'a> Partition<'a> {
     }
 
     pub fn update(&mut self) {
-        if let Some(process) = &mut self.process {
-            process.update();
-            if process.has_ended() {
+        if let Some(process) = &self.process {
+            process.borrow_mut().update();
+            if process.borrow().has_ended() {
                 self.process = None;
             }
         }
