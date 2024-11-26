@@ -37,7 +37,7 @@ impl Partition {
             size: memory_required,
             process: Some(Rc::clone(process))
         }, Some(Self {
-            initial_adress: self.initial_adress + memory_required + 1,
+            initial_adress: self.initial_adress + memory_required,
             size: self.size - memory_required,
             process: None
         }))
@@ -101,7 +101,7 @@ mod tests {
         assert_eq!(result.0.initial_adress, 0);
         assert_eq!(result.0.size, 100);
         assert_eq!(result.0.is_free(), false);
-        assert_eq!(result.1.as_ref().unwrap().initial_adress, 101);
+        assert_eq!(result.1.as_ref().unwrap().initial_adress, 100);
         assert_eq!(result.1.as_ref().unwrap().size, 100);
         assert_eq!(result.1.unwrap().is_free(), true);
     }
@@ -116,7 +116,7 @@ mod tests {
         let p1 = format!("{}", result.1.unwrap());
 
         assert_eq!("[0 P1 100]", p0);
-        assert_eq!("[101 Hole 100]", p1);
+        assert_eq!("[100 Hole 100]", p1);
     }
 
     #[test]

@@ -5,8 +5,8 @@ use std::error::Error;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-const INITIAL_MEMORY: u32 = 2000;
-const OUTPUT_FILE_NAME: &str = "partitions.txt";
+pub const INITIAL_MEMORY: u32 = 2000;
+pub const OUTPUT_FILE_NAME: &str = "partitions.txt";
 
 pub struct Memory {
     size: u32,
@@ -148,4 +148,16 @@ mod tests {
             Err(e) => println!("Correct: {e}")
         }
     }
+
+    // #[test]
+    // fn test_update() {
+    //     let result = Memory::new("input_test_update.txt");
+    //     match result {
+    //         Ok(mut mem) => {
+    //             mem.update(Algorithm::BestFit);
+
+    //         },
+    //         Err(e) => panic!("Could not complete test {}", e)
+    //     }
+    // }
 }
