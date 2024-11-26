@@ -40,13 +40,14 @@ impl Memory {
     }
     
     pub fn update(&mut self, algorithm: Algorithm) {
+        self.runtime += 1;
         self.partition_assignment(algorithm);
         
         for partition in &mut self.partitions {
             partition.update();
+            // delete process
         }
         self.merge_partitions();
-        self.runtime += 1;
         if let Err(e) = self.write_file() {
             println!("Something went wrong while writing the output to file");
             println!("{}", e);
@@ -110,7 +111,7 @@ impl Memory {
         while i < self.partitions.len() {
             if self.partitions[i].is_free() {
                 let j = i + 1;
-                while self.partitions[j].is_free() {
+                while j < self.partitions.len() && self.partitions[j].is_free() {
                     let p = self.partitions.remove(j);
                     self.partitions[i].merge(p);
                 }
@@ -149,15 +150,26 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn test_update() {
-    //     let result = Memory::new("input_test_update.txt");
-    //     match result {
-    //         Ok(mut mem) => {
-    //             mem.update(Algorithm::BestFit);
+    #[test]
+    fn test_update() {
+        let result = Memory::new("input_test_update.txt");
+        match result {
+            Ok(mut mem) => {
+                mem.update(Algorithm::BestFit);
 
-    //         },
-    //         Err(e) => panic!("Could not complete test {}", e)
-    //     }
-    // }
+                let mut i = mem.processes.iter();
+                assert_eq!(i.next().unwrap().borrow().is_assigned(), true);
+                assert_eq!(i.next().unwrap().borrow().is_assigned(), false);
+
+                mem.update(Algorithm::BestFit);
+                i = mem.processes.iter();
+                assert_eq!(i.next().unwrap().borrow().is_assigned(), true);
+                assert_eq!(i.next().unwrap().borrow().is_assigned(), true);
+
+                mem.update(Algorithm::BestFit);
+                assert_eq!(mem.partitions.len(), 1);
+            },
+            Err(e) => panic!("Could not complete test {}", e)
+        }
+    }
 }
