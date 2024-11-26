@@ -31,7 +31,7 @@ impl Memory {
         };
 
         for line in file_content.lines() {
-            result.processes.push(Process::from(line));
+            result.processes.push(Rc::new(RefCell::new(Process::from(line))));
         }
 
         result.partitions.push(Partition::new_empty(0, result.size));
@@ -85,8 +85,8 @@ impl Memory {
     fn partition_assignment(&mut self, algorithm: Algorithm) {
         let processes = self.processes.clone();
         for (i, process) in processes.iter().enumerate() {
-            if !process.is_assigned() && self.runtime >= process.get_arrival_time() {
-                let possible_position = self.get_partition_position(process, &algorithm);
+            if !process.borrow().is_assigned() && self.runtime >= process.borrow().get_arrival_time() {
+                let possible_position = self.get_partition_position(&process.borrow(), &algorithm);
                 if let Some(index) = possible_position {
                     let partition = self.partitions.remove(index);
                     let (partition1, partition2) = partition.divide(&mut self.processes[i]);
@@ -126,7 +126,7 @@ mod tests {
             Ok(mem) => {
                 assert_eq!(mem.size, INITIAL_MEMORY);
                 assert_eq!(mem.runtime, 0);
-                assert_eq!(mem.partitions.len(), 0);
+                assert_eq!(mem.partitions.len(), 1);
                 assert_eq!(mem.processes.len(), 2);
             },
             Err(e) => panic!("An error ocurred, {}", e)
