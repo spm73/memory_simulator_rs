@@ -45,9 +45,14 @@ impl Memory {
         
         for partition in &mut self.partitions {
             partition.update();
-            // delete process
         }
         self.merge_partitions();
+        
+        for i in 0..self.processes.len() {
+            if self.processes[i].borrow().has_ended() {
+                self.processes.remove(i);
+            }
+        }
         if let Err(e) = self.write_file() {
             println!("Something went wrong while writing the output to file");
             println!("{}", e);
