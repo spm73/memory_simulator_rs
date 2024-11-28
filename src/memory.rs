@@ -62,9 +62,11 @@ impl Memory {
     fn write_file(&self) -> std::io::Result<()> {
         use std::io::Write;
         let mut file = File::options().append(true).open(OUTPUT_FILE_NAME)?;
+        write!(&mut file, "{}", self.runtime)?;
         for partition in &self.partitions {
             write!(&mut file, "{}", partition)?;
         }
+        writeln!(&mut file, "Return")?;
         Ok(())
     }
 
@@ -160,19 +162,20 @@ mod tests {
         let result = Memory::new("input_test_update.txt");
         match result {
             Ok(mut mem) => {
-                mem.update(Algorithm::BestFit);
-
-                let mut i = mem.processes.iter();
-                assert_eq!(i.next().unwrap().borrow().is_assigned(), true);
-                assert_eq!(i.next().unwrap().borrow().is_assigned(), false);
+                assert_eq!(1, mem.partitions.len());
+                assert_eq!(3, mem.processes.len());
 
                 mem.update(Algorithm::BestFit);
-                i = mem.processes.iter();
-                assert_eq!(i.next().unwrap().borrow().is_assigned(), true);
-                assert_eq!(i.next().unwrap().borrow().is_assigned(), true);
+                assert_eq!(3, mem.partitions.len());
+                assert_eq!(3, mem.processes.len());
 
                 mem.update(Algorithm::BestFit);
-                assert_eq!(mem.partitions.len(), 1);
+                assert_eq!(3, mem.partitions.len());
+                assert_eq!(2, mem.processes.len());
+
+                mem.update(Algorithm::BestFit);
+                assert_eq!(1, mem.partitions.len());
+                assert_eq!(0, mem.processes.len());
             },
             Err(e) => panic!("Could not complete test {}", e)
         }
