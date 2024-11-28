@@ -4,6 +4,7 @@ use std::cell::RefCell;
 
 use crate::process::Process;
 
+#[derive(Debug)]
 pub struct Partition {
     initial_adress: u32,
     size: u32,

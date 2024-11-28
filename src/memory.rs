@@ -8,6 +8,7 @@ use std::cell::RefCell;
 pub const INITIAL_MEMORY: u32 = 2000;
 pub const OUTPUT_FILE_NAME: &str = "partitions.txt";
 
+#[derive(Debug)]
 pub struct Memory {
     size: u32,
     processes: Vec<Rc<RefCell<Process>>>,
@@ -41,17 +42,20 @@ impl Memory {
     
     pub fn update(&mut self, algorithm: Algorithm) {
         self.runtime += 1;
-        self.partition_assignment(algorithm);
         
         for partition in &mut self.partitions {
             partition.update();
         }
         self.merge_partitions();
+        self.partition_assignment(algorithm);   
         
-        for i in 0..self.processes.len() {
+        let mut i: usize = 0;
+        while i < self.processes.len() {
             if self.processes[i].borrow().has_ended() {
                 self.processes.remove(i);
+                continue; // remove shifts vector elements
             }
+            i += 1;
         }
         if let Err(e) = self.write_file() {
             println!("Something went wrong while writing the output to file");
@@ -61,7 +65,7 @@ impl Memory {
     
     fn write_file(&self) -> std::io::Result<()> {
         use std::io::Write;
-        let mut file = File::options().append(true).open(OUTPUT_FILE_NAME)?;
+        let mut file = File::options().append(true).create(true).open(OUTPUT_FILE_NAME)?;
         write!(&mut file, "{}", self.runtime)?;
         for partition in &self.partitions {
             write!(&mut file, "{}", partition)?;
@@ -162,18 +166,22 @@ mod tests {
         let result = Memory::new("input_test_update.txt");
         match result {
             Ok(mut mem) => {
+                dbg!(&mem);
                 assert_eq!(1, mem.partitions.len());
                 assert_eq!(3, mem.processes.len());
 
                 mem.update(Algorithm::BestFit);
+                dbg!(&mem);
                 assert_eq!(3, mem.partitions.len());
                 assert_eq!(3, mem.processes.len());
 
                 mem.update(Algorithm::BestFit);
+                dbg!(&mem);
                 assert_eq!(3, mem.partitions.len());
                 assert_eq!(2, mem.processes.len());
 
                 mem.update(Algorithm::BestFit);
+                dbg!(&mem);
                 assert_eq!(1, mem.partitions.len());
                 assert_eq!(0, mem.processes.len());
             },

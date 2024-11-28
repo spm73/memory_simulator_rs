@@ -1,6 +1,6 @@
 use std::convert::From;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Process {
     id: u32,
     arrival_time: u32,
