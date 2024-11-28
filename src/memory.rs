@@ -40,6 +40,10 @@ impl Memory {
         Ok(result)
     }
     
+    pub fn has_processes_waiting(&self) -> bool {
+        !self.processes.is_empty()
+    }
+
     pub fn update(&mut self, algorithm: Algorithm) {
         self.runtime += 1;
         
@@ -66,11 +70,11 @@ impl Memory {
     fn write_file(&self) -> std::io::Result<()> {
         use std::io::Write;
         let mut file = File::options().append(true).create(true).open(OUTPUT_FILE_NAME)?;
-        write!(&mut file, "{}", self.runtime)?;
+        file.write(format!("{}", self.runtime).as_bytes())?;
         for partition in &self.partitions {
-            write!(&mut file, "{}", partition)?;
+            file.write(format!(" {partition}").as_bytes())?;
         }
-        writeln!(&mut file, "Return")?;
+        file.write(" Return\n".as_bytes())?;
         Ok(())
     }
 
@@ -135,6 +139,7 @@ impl Memory {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::remove_file;
 
     #[test]
     fn test_new() {
@@ -166,26 +171,49 @@ mod tests {
         let result = Memory::new("input_test_update.txt");
         match result {
             Ok(mut mem) => {
-                dbg!(&mem);
+                // dbg!(&mem);
                 assert_eq!(1, mem.partitions.len());
                 assert_eq!(3, mem.processes.len());
 
                 mem.update(Algorithm::BestFit);
-                dbg!(&mem);
+                // dbg!(&mem);
                 assert_eq!(3, mem.partitions.len());
                 assert_eq!(3, mem.processes.len());
 
                 mem.update(Algorithm::BestFit);
-                dbg!(&mem);
+                // dbg!(&mem);
                 assert_eq!(3, mem.partitions.len());
                 assert_eq!(2, mem.processes.len());
 
                 mem.update(Algorithm::BestFit);
-                dbg!(&mem);
+                // dbg!(&mem);
                 assert_eq!(1, mem.partitions.len());
                 assert_eq!(0, mem.processes.len());
             },
             Err(e) => panic!("Could not complete test {}", e)
         }
+        remove_file(OUTPUT_FILE_NAME).expect("Could not delete output file");
+    }
+
+    #[test]
+    fn test_output() {
+        remove_file(OUTPUT_FILE_NAME).unwrap_or_else(|_| {});
+        let possible_mem = Memory::new("input_test_update.txt");
+        match possible_mem {
+            Ok(mut mem) => {
+                while mem.has_processes_waiting() {
+                    mem.update(Algorithm::BestFit);
+                }
+
+                let content = read_to_string(OUTPUT_FILE_NAME).expect("Could not read content of output file");
+                let mut lines = content.lines();
+                assert_eq!("1 [0 P1 100] [100 P3 100] [200 Hole 1800] Return", lines.next().unwrap());
+                assert_eq!("2 [0 P1 100] [100 P2 100] [200 Hole 1800] Return", lines.next().unwrap());
+                assert_eq!("3 [0 Hole 2000] Return", lines.next().unwrap());
+                
+            },
+            Err(e) => panic!("Could not complete test {}", e)
+        }
+        remove_file(OUTPUT_FILE_NAME).expect("Could not delete output file");
     }
 }
