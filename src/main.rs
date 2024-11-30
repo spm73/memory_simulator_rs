@@ -1,18 +1,22 @@
 use std::env::args;
-use std::fs::exists;
-use iced::{Result, application};
-use memory::Memory;
+use std::fs::{ exists, remove_file};
+// use iced::{Result, application, Element, Task};
+// use iced::widget::{stack, column, row, button, text};
+use memory::{Algorithm, Memory, OUTPUT_FILE_NAME};
 
 mod process;
 mod memory;
 mod partition;
 
 fn main() {
+    delete_output_file();
     let arguments: Vec<String> = args().collect();
     let input_file_name = process_arguments(&arguments);
-    let mem = Memory::new(&input_file_name).expect("Could not open input file");
+    let mut mem = Memory::new(&input_file_name).expect("Could not open input file");
+    while mem.has_processes_waiting() {
+        mem.update(Algorithm::BestFit);
+    }
 }
-
 
 fn process_arguments(args: &Vec<String>) -> String {
     if args.len() != 2 {
@@ -26,3 +30,37 @@ fn process_arguments(args: &Vec<String>) -> String {
 
     panic!("Input file name does not exists");
 }
+
+fn delete_output_file() {
+    let output_file_exists = exists(OUTPUT_FILE_NAME)
+                                    .expect("Something went wrong trying to search for past results");
+    if output_file_exists {
+        remove_file(OUTPUT_FILE_NAME).expect(format!("Could not delete {}", OUTPUT_FILE_NAME).as_str());
+    }
+}
+
+
+// fn view(mem: &Memory) -> Element<Algorithm> {
+//     let stack_elements = create_stack(mem);
+    
+//     row![
+//         column![
+//             button("Next: Best Fit").on_press(Algorithm::BestFit),
+//             button("Next: Worst Fit").on_press(Algorithm::WorstFit)
+//         ],
+//         column![ stack(stack_elements) ]
+//     ].into()
+// }
+
+// fn create_stack(mem: &Memory) -> Vec<Element<Algorithm>> {
+//     let mut stack_elements: Vec<Element<Algorithm>> = Vec::new();
+//     for partition in &mem.get_partitions() {
+//         stack_elements.push(
+//             row![
+//                 text(format!("{partition}"))
+//             ].into()
+//         )
+//     }
+
+//     stack_elements
+// }

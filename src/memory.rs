@@ -8,7 +8,7 @@ use std::cell::RefCell;
 pub const INITIAL_MEMORY: u32 = 2000;
 pub const OUTPUT_FILE_NAME: &str = "partitions.txt";
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Memory {
     size: u32,
     processes: Vec<Rc<RefCell<Process>>>,
@@ -16,6 +16,7 @@ pub struct Memory {
     runtime: u32
 }
 
+#[derive(Clone, Debug)]
 pub enum Algorithm {
     BestFit,
     WorstFit
@@ -133,6 +134,10 @@ impl Memory {
             }
             i += 1;
         }
+    }
+
+    pub fn get_partitions(&self) -> Vec<Partition> {
+        self.partitions.clone()
     }
 }
 
