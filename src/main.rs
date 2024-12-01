@@ -1,7 +1,8 @@
 use std::env::args;
-use std::fs::{ exists, remove_file};
+use std::fs::{ exists, remove_file };
+use std::process::exit;
 use iced::{application, Element, Result, Task};
-use iced::widget::{stack, column, row, button, text};
+use iced::widget::{stack, column, row, button, text, container};
 use memory::{Algorithm, Memory, OUTPUT_FILE_NAME};
 
 mod process;
@@ -39,14 +40,18 @@ fn delete_output_file() {
 
 
 fn view(mem: &Memory) -> Element<Algorithm> {
+    if !mem.has_processes_waiting() {
+        exit(0);
+    }
+
     let stack_elements = create_stack(mem);
-    
-    row![
-        column![
-            button("Next: Best Fit").on_press(Algorithm::BestFit),
-            button("Next: Worst Fit").on_press(Algorithm::WorstFit)
+    column![
+        row![
+            button("Next: Best Fit").on_press(Algorithm::BestFit).padding(10),
+            button("Next: Worst Fit").on_press(Algorithm::WorstFit).padding(10),
+
         ],
-        column![ stack(stack_elements) ]
+        row![ stack(stack_elements) ]
     ].into()
 }
 
@@ -54,9 +59,9 @@ fn create_stack(mem: &Memory) -> Vec<Element<Algorithm>> {
     let mut stack_elements: Vec<Element<Algorithm>> = Vec::new();
     for partition in &mem.get_partitions() {
         stack_elements.push(
-            row![
-                text(format!("{partition}"))
-            ].into()
+            container(text(format!("{partition}")))
+            .padding(10)
+            .into()
         )
     }
 
