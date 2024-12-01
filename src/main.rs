@@ -1,21 +1,19 @@
 use std::env::args;
 use std::fs::{ exists, remove_file};
-// use iced::{Result, application, Element, Task};
-// use iced::widget::{stack, column, row, button, text};
+use iced::{application, Element, Result, Task};
+use iced::widget::{stack, column, row, button, text};
 use memory::{Algorithm, Memory, OUTPUT_FILE_NAME};
 
 mod process;
 mod memory;
 mod partition;
 
-fn main() {
+fn main() -> Result {
     delete_output_file();
     let arguments: Vec<String> = args().collect();
     let input_file_name = process_arguments(&arguments);
-    let mut mem = Memory::new(&input_file_name).expect("Could not open input file");
-    while mem.has_processes_waiting() {
-        mem.update(Algorithm::BestFit);
-    }
+    let mem = Memory::new(&input_file_name).expect("Could not open input file");
+    application("Memory Simulator", update, view).run_with(|| {(mem, Task::none())})
 }
 
 fn process_arguments(args: &Vec<String>) -> String {
@@ -40,27 +38,31 @@ fn delete_output_file() {
 }
 
 
-// fn view(mem: &Memory) -> Element<Algorithm> {
-//     let stack_elements = create_stack(mem);
+fn view(mem: &Memory) -> Element<Algorithm> {
+    let stack_elements = create_stack(mem);
     
-//     row![
-//         column![
-//             button("Next: Best Fit").on_press(Algorithm::BestFit),
-//             button("Next: Worst Fit").on_press(Algorithm::WorstFit)
-//         ],
-//         column![ stack(stack_elements) ]
-//     ].into()
-// }
+    row![
+        column![
+            button("Next: Best Fit").on_press(Algorithm::BestFit),
+            button("Next: Worst Fit").on_press(Algorithm::WorstFit)
+        ],
+        column![ stack(stack_elements) ]
+    ].into()
+}
 
-// fn create_stack(mem: &Memory) -> Vec<Element<Algorithm>> {
-//     let mut stack_elements: Vec<Element<Algorithm>> = Vec::new();
-//     for partition in &mem.get_partitions() {
-//         stack_elements.push(
-//             row![
-//                 text(format!("{partition}"))
-//             ].into()
-//         )
-//     }
+fn create_stack(mem: &Memory) -> Vec<Element<Algorithm>> {
+    let mut stack_elements: Vec<Element<Algorithm>> = Vec::new();
+    for partition in &mem.get_partitions() {
+        stack_elements.push(
+            row![
+                text(format!("{partition}"))
+            ].into()
+        )
+    }
 
-//     stack_elements
-// }
+    stack_elements
+}
+
+fn update(mem: &mut Memory, algorithm: Algorithm) {
+    mem.update(algorithm);
+}
