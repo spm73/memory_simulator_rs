@@ -61,9 +61,9 @@ fn view(mem: &Memory) -> Element<Algorithm> {
 fn create_stack(mem: &Memory) -> Element<Algorithm> {
     let mut stack_elements = Column::new();
     let mut top_left = Point::new(100f32, 100f32);
-    for _ in &mem.get_partitions() {
+    for partition in &mem.get_partitions() {
         stack_elements = stack_elements.push(
-            Canvas::new(PartitionRectangle::new(top_left))
+            Canvas::new(PartitionRectangle::new(top_left, format!("{partition}")))
         );
         top_left.y += SIZE.height;
     }
