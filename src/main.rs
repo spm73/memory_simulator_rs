@@ -1,13 +1,16 @@
 use std::env::args;
 use std::fs::{ exists, remove_file };
 use std::process::exit;
-use iced::{application, Element, Result, Task};
-use iced::widget::{stack, column, row, button, text, container};
+use iced::{application, Element, Result, Task, color, Point};
+use iced::widget::{column, row, button, Space, Column, text, Canvas};
+
 use memory::{Algorithm, Memory, OUTPUT_FILE_NAME};
+use graphic_partitions::{PartitionRectangle, SIZE};
 
 mod process;
 mod memory;
 mod partition;
+mod graphic_partitions;
 
 fn main() -> Result {
     delete_output_file();
@@ -47,25 +50,25 @@ fn view(mem: &Memory) -> Element<Algorithm> {
     let stack_elements = create_stack(mem);
     column![
         row![
-            button("Next: Best Fit").on_press(Algorithm::BestFit).padding(10),
-            button("Next: Worst Fit").on_press(Algorithm::WorstFit).padding(10),
-
+            button("Next: Best Fit").on_press(Algorithm::BestFit),
+            Space::with_width(30),
+            button("Next: Worst Fit").on_press(Algorithm::WorstFit)
         ],
-        row![ stack(stack_elements) ]
+        stack_elements
     ].into()
 }
 
-fn create_stack(mem: &Memory) -> Vec<Element<Algorithm>> {
-    let mut stack_elements: Vec<Element<Algorithm>> = Vec::new();
-    for partition in &mem.get_partitions() {
-        stack_elements.push(
-            container(text(format!("{partition}")))
-            .padding(10)
-            .into()
-        )
+fn create_stack(mem: &Memory) -> Element<Algorithm> {
+    let mut stack_elements = Column::new();
+    let mut top_left = Point::new(100f32, 100f32);
+    for _ in &mem.get_partitions() {
+        stack_elements = stack_elements.push(
+            Canvas::new(PartitionRectangle::new(top_left))
+        );
+        top_left.y += SIZE.height;
     }
 
-    stack_elements
+    stack_elements.into()
 }
 
 fn update(mem: &mut Memory, algorithm: Algorithm) {
