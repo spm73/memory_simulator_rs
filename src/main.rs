@@ -1,8 +1,8 @@
 use std::env::args;
 use std::fs::{ exists, remove_file };
 use std::process::exit;
-use iced::{application, Element, Result, Task, color, Point};
-use iced::widget::{column, row, button, Space, Column, text, Canvas};
+use iced::{application, Element, Result, Task, Point};
+use iced::widget::{column, row, button, Space, Column, Canvas};
 
 use memory::{Algorithm, Memory, OUTPUT_FILE_NAME};
 use graphic_partitions::{PartitionRectangle, SIZE};
