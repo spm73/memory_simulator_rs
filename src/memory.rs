@@ -134,6 +134,10 @@ impl Memory {
             i += 1;
         }
     }
+
+    pub fn get_partitions(&self) -> Vec<Partition> {
+        self.partitions.clone()
+    }
 }
 
 #[cfg(test)]
