@@ -1,6 +1,6 @@
 use eframe::{run_native, NativeOptions};
-use graphic_app::MyEguiApp;
 
+use graphic_app::MyEguiApp;
 use memory::Memory;
 use function_utils::*;
 

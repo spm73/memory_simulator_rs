@@ -1,10 +1,11 @@
 use eframe;
 use egui;
 
-use crate::memory::{Memory, Algorithm};
+use crate::memory::{Memory, Algorithm, INITIAL_MEMORY};
 
 const WIDTH: f32 = 350_f32;
 const HEIGHT: f32 = 50_f32;
+const TOTAL_HEIGHT: f32 = 900_f32;
 
 
 pub struct MyEguiApp {
@@ -45,14 +46,15 @@ impl eframe::App for MyEguiApp {
                 }
             });
 
-            let mut center = egui::pos2(100_f32, 100_f32);
-            let dimensions = egui::vec2(WIDTH, HEIGHT);
-            let mut rect = egui::Rect::from_min_size(center, dimensions);
+            let mut top_left_corner = egui::pos2(50_f32, 50_f32);
+            let mut dimensions = egui::vec2(WIDTH, HEIGHT);
+            let mut rect = egui::Rect::from_min_size(top_left_corner, dimensions);
             ui.painter().add(egui::Shape::rect_stroke(rect, egui::Rounding::ZERO, egui::Stroke::new(1_f32, egui::Color32::WHITE)));
-            ui.put(rect, egui::Label::new(egui::RichText::new("Memory Layout").color(egui::Color32::WHITE)).wrap());
-            for partition in &self.memory.get_partitions() {
-                center.y += HEIGHT + 1_f32;
-                rect = egui::Rect::from_min_size(center, dimensions);
+            ui.put(rect, egui::Label::new(egui::RichText::new("Memory Layout").color(egui::Color32::WHITE).underline().heading()).wrap());
+            for partition in self.memory.get_partitions() {
+                top_left_corner.y += dimensions.y + 1_f32;
+                dimensions.y = TOTAL_HEIGHT * partition.get_size() as f32 / INITIAL_MEMORY as f32;
+                rect = egui::Rect::from_min_size(top_left_corner, dimensions);
                 let color;
                 if partition.is_free() {
                     color = egui::Color32::DARK_GREEN;
