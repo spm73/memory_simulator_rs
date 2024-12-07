@@ -10,11 +10,11 @@ pub fn process_arguments() -> String {
     }
 
     let file_exists = exists(arguments[1].clone()).expect("File cannot be accessed");
-    if file_exists {
-        return arguments[1].clone();
+    if !file_exists {
+        panic!("Input file name does not exists");
     }
-
-    panic!("Input file name does not exists");
+    
+    arguments[1].clone()
 }
 
 pub fn delete_output_file() {
