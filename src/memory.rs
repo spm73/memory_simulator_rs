@@ -53,15 +53,8 @@ impl Memory {
         }
         self.merge_partitions();
         self.partition_assignment(algorithm);   
+        self.delete_ended_processes();
         
-        let mut i: usize = 0;
-        while i < self.processes.len() {
-            if self.processes[i].borrow().has_ended() {
-                self.processes.remove(i);
-                continue; // remove shifts vector elements
-            }
-            i += 1;
-        }
         if let Err(e) = self.write_file() {
             println!("Something went wrong while writing the output to file");
             println!("{}", e);
@@ -119,6 +112,17 @@ impl Memory {
                     }
                 }
             }
+        }
+    }
+
+    fn delete_ended_processes(&mut self) {
+        let mut i: usize = 0;
+        while i < self.processes.len() {
+            if self.processes[i].borrow().has_ended() {
+                self.processes.remove(i);
+                continue; // remove shifts vector elements
+            }
+            i += 1;
         }
     }
 
