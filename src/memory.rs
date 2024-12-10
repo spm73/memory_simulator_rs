@@ -37,6 +37,7 @@ impl Memory {
         }
 
         result.partitions.push(Partition::new_empty(0, result.size));
+        result.partition_assignment(Algorithm::BestFit);
 
         Ok(result)
     }
